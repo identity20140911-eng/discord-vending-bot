@@ -1,4 +1,5 @@
 import asyncio
+import os
 import threading
 import discord
 from discord import app_commands
@@ -8,12 +9,13 @@ from flask import Flask, request
 # Flask 웹서버 (입금 알림 수신용)
 app = Flask(__name__)
 
-# 임시 데이터베이스 (유저 잔액 및 입금 신청 내역)
+# 메모리 데이터베이스
 user_balances = {}  # {user_id: balance}
 pending_deposits = {}  # {deposit_name: (user_id, amount)}
 
 # 봇 설정
 intents = discord.Intents.default()
+intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
@@ -31,13 +33,15 @@ async def on_ready():
 @app.route("/deposit_webhook", methods=["POST"])
 def deposit_webhook():
   data = request.json
+  if not data:
+    return {"status": "error", "message": "데이터 없음"}, 400
+
   depositor_name = data.get("name")
   amount = data.get("amount")
 
   if depositor_name in pending_deposits:
     user_id, expected_amount = pending_deposits[depositor_name]
 
-    # 유저가 자유롭게 신청한 금액과 실제 입금된 금액이 일치하는지 확인
     if int(amount) == int(expected_amount):
       user_balances[user_id] = user_balances.get(user_id, 0) + int(amount)
       del pending_deposits[depositor_name]
@@ -63,8 +67,9 @@ class FreeDepositModal(discord.ui.Modal, title="💳 자유 금액 입금 신청
 
   async def on_submit(self, interaction: discord.Interaction):
     try:
-      # 숫자만 추출
-      clean_amount_str = self.amount.value.replace(",", "").replace("원", "").strip()
+      clean_amount_str = (
+          self.amount.value.replace(",", "").replace("원", "").strip()
+      )
       amt = int(clean_amount_str)
 
       if amt <= 0:
@@ -75,7 +80,7 @@ class FreeDepositModal(discord.ui.Modal, title="💳 자유 금액 입금 신청
 
       name = self.depositor_name.value.strip()
 
-      # 입금 대기 목록에 등록 (이름: 유저ID, 자유입력금액)
+      # 입금 대기 목록 등록
       pending_deposits[name] = (interaction.user.id, amt)
 
       embed = discord.Embed(
@@ -140,12 +145,16 @@ async def vending_setup(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed, view=view)
 
 
-# 웹서버와 봇 동시 실행
+# Flask 서버 실행
 def run_flask():
   app.run(host="0.0.0.0", port=10000)
 
 
 threading.Thread(target=run_flask).start()
 
-# 봇 토큰 입력 (네 봇 토큰 유지)
-bot.run("MTU1MDg1NjY4MTM2ODMyNjIyMw.GSIgpn.XkXOqhCOfTiXTs_iHpcStdKk3o76l4RupsuDo4")
+# Render 환경 변수(BOT_TOKEN)에서 안전하게 토큰 가져와 실행
+TOKEN = os.environ.get("BOT_TOKEN")
+if TOKEN:
+  bot.run(TOKEN)
+else:
+  print("에러: Render 대시보드 Environment에 BOT_TOKEN을 설정해 주세요.")

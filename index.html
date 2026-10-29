@@ -14,7 +14,6 @@
     min-height:100vh;
     overflow-x:hidden;
   }
-  /* 피카츄 윙크 배경 */
   .bg{
     position:fixed;inset:0;
     background:
@@ -83,7 +82,6 @@
   .dev-zone{border-color:#ffcc00}
   .dotong-zone{border-color:#55aaff}
   label{font-size:.82rem;color:#aaa;display:block;margin-bottom:4px}
-  .poke-icon{font-size:1.3rem}
   .pending-card{background:#1a1a28;border:1px solid #444;border-radius:10px;padding:10px;margin-bottom:8px;font-size:.85rem}
   .pending-card b{color:#ffcc00}
 </style>
@@ -122,15 +120,21 @@
       <div id="unlockList"></div>
     </div>
 
-    <!-- 📁 세이브 파일 변조기 (신규 추가) -->
+    <!-- 📁 세이브 변조기 (파일 업로드 + 텍스트 직접 입력 겸용) -->
     <div class="card" style="border-color:#ffcc00;background:rgba(30,30,45,0.95);margin-bottom:14px">
-      <h3 style="color:#ffcc00;margin-bottom:6px">📁 포켓로그 세이브 변조기 (강추)</h3>
+      <h3 style="color:#ffcc00;margin-bottom:6px">📁 포켓로그 세이브 변조기</h3>
       <div style="font-size:0.8rem;color:#ccc;margin-bottom:10px">
-        포켓로그 옵션에서 <b>Export Save</b>로 받은 JSON 파일을 올리면 올캐·만렙 세이브로 자동 개조해 줍니다!
+        세이브 파일이 없다면 포켓로그 콘솔창에 <b>console.log(localStorage.getItem('sessionData1_아이디'))</b>를 치고 나온 텍스트를 아래에 붙여넣으세요!
       </div>
+      
+      <label>방법 1: 파일 업로드</label>
       <input type="file" id="saveFileInput" accept=".json" style="background:#1a1a28;padding:8px">
-      <button class="btn-yellow" onclick="modSaveFile()" style="margin-top:6px">✨ 세이브 파일 올캐/만렙 개조하기</button>
-      <div id="saveModStatus" class="status" style="margin-top:8px">파일을 업로드하고 버튼을 누르세요.</div>
+      
+      <label style="margin-top:8px">방법 2: 세이브 문자열 직접 붙여넣기</label>
+      <textarea id="saveTextarea" rows="3" placeholder="U2FsdGVkX1... 형식의 텍스트를 여기에 붙여넣기" style="resize:vertical;"></textarea>
+
+      <button class="btn-yellow" onclick="modSaveData()" style="margin-top:6px">✨ 올캐/만렙 세이브로 개조하기</button>
+      <div id="saveModStatus" class="status" style="margin-top:8px">파일을 올리거나 텍스트를 넣고 버튼을 누르세요.</div>
     </div>
 
     <!-- NORMAL -->
@@ -281,207 +285,4 @@ function updateLimits(nick){
   document.getElementById('leftBalls').textContent=l.balls;
   document.getElementById('leftPrimal').textContent=l.primal;
   document.getElementById('leftAdd').textContent=l.add;
-  document.getElementById('btnLevel').disabled=l.level<=0;
-  document.getElementById('btnBalls').disabled=l.balls<=0;
-  document.getElementById('btnPrimal').disabled=l.primal<=0;
-  document.getElementById('btnAdd').disabled=l.add<=0;
-}
-function updateDtLeft(nick){
-  const d=getDtUses(nick);
-  document.getElementById('dtLeft').textContent=d.left;
-}
-
-function startTimer(nick){
-  const start=+localStorage.getItem(PLAY+nick)||Date.now();
-  function tick(){
-    const sec=Math.floor((Date.now()-start)/1000);
-    const h=String(Math.floor(sec/3600)).padStart(2,'0');
-    const m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
-    const s=String(sec%60).padStart(2,'0');
-    document.getElementById('playTimer').textContent=`${h}:${m}:${s}`;
-    const mins=Math.floor(sec/60);
-    let html='';
-    [{t:10,n:'원시 포켓몬'},{t:20,n:'캐릭터 추가'},{t:30,n:'이로치'}].forEach((f,i)=>{
-      const on=mins>=f.t;
-      html+=`<span class="tag ${on?'on':''}">${f.n} ${on?'해금':'잠김'}</span>`;
-      document.getElementById('feat'+(i+1)).classList.toggle('hidden',!on);
-    });
-    document.getElementById('unlockList').innerHTML=html;
-  }
-  tick();setInterval(tick,1000);
-}
-
-function copy(code){navigator.clipboard.writeText(code).then(()=>setS('mainStatus','복사 완료! 게임 콘솔에 붙여넣기',true))}
-
-/* 📁 세이브 파일 변조 로직 */
-function modSaveFile() {
-  const fileInput = document.getElementById('saveFileInput');
-  if (!fileInput.files.length) {
-    return setS('saveModStatus', '먼저 세이브 파일을 선택해주세요!', false);
-  }
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-  
-  reader.onload = function(e) {
-    try {
-      const saveData = JSON.parse(e.target.result);
-      
-      // 세이브 파일 내부의 gameData 속성 접근 (없으면 루트 객체 대상으로 탐색)
-      const target = saveData.gameData || saveData;
-      if (!target.starterData) target.starterData = {};
-      if (!target.dexData) target.dexData = {};
-
-      // 1번부터 1025번까지 모든 포켓몬 올캐 & 만렙 사양 강제 주입
-      for (let i = 1; i <= 1025; i++) {
-        target.starterData[i] = {
-          abilityAttr: 7,
-          candyCount: 999,
-          eggMoves: 15,
-          friendship: 255,
-          passiveAttr: 3,
-          valueReduction: 2
-        };
-        target.dexData[i] = {
-          caughtAttr: 255,
-          ivs: [31, 31, 31, 31, 31, 31],
-          seenAttr: 479,
-          caughtCount: 99,
-          hatchedCount: 99,
-          seenCount: 99,
-          natureAttr: 67108862
-        };
-      }
-
-      if (target.voucherCounts) {
-        target.voucherCounts = [9999, 9999, 9999, 9999];
-      }
-      if (target.money !== undefined) {
-        target.money = 99999999;
-      }
-
-      // 수정된 JSON 파일 자동 다운로드 생성
-      const jsonStr = JSON.stringify(saveData, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'pokerogue_cheated_save.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      setS('saveModStatus', '✨ 변조 완료! 다운로드된 파일을 게임에서 Import 하세요!', true);
-    } catch (err) {
-      console.error(err);
-      setS('saveModStatus', '파일 형식이 잘못되었거나 읽을 수 없습니다.', false);
-    }
-  };
-  reader.readAsText(file);
-}
-
-// normal
-function useLevel(){const nick=localStorage.getItem(SESSION);const l=getLimits(nick);if(l.level<=0)return;const v=Math.min(999,+document.getElementById('levelVal').value||50);l.level--;saveLimits(nick,l);updateLimits(nick);copy(`this.scene.party.forEach(p=>{p.level=${v};});console.log("Level ${v}");`)}
-function useBalls(){const nick=localStorage.getItem(SESSION);const l=getLimits(nick);if(l.balls<=0)return;l.balls--;saveLimits(nick,l);updateLimits(nick);copy(`this.scene.pokeballCounts={0:99,1:99,2:99,3:99,4:99};console.log("Balls 99");`)}
-function usePrimal(){const nick=localStorage.getItem(SESSION);const l=getLimits(nick);if(l.primal<=0)return;const id=+document.getElementById('primalId').value;if(!id)return;l.primal--;saveLimits(nick,l);updateLimits(nick);copy(`this.scene.gameData.starterData[${id}]={abilityAttr:7,candyCount:200,eggMoves:15,friendship:255,passiveAttr:3,valueReduction:2};this.scene.gameData.dexData[${id}]={caughtAttr:255n,ivs:[31,31,31,31,31,31],seenAttr:479n,caughtCount:10,hatchedCount:10,seenCount:10,natureAttr:67108862};console.log("Primal ${id}");`)}
-function useAdd(){const nick=localStorage.getItem(SESSION);const l=getLimits(nick);if(l.add<=0)return;const id=+document.getElementById('addId').value;if(!id)return;l.add--;saveLimits(nick,l);updateLimits(nick);copy(`this.scene.gameData.starterData[${id}]={abilityAttr:7,candyCount:50,eggMoves:15,friendship:50,passiveAttr:1,valueReduction:0};this.scene.gameData.dexData[${id}]={caughtAttr:255n,ivs:[31,31,31,31,31,31],seenAttr:479n,caughtCount:1,hatchedCount:0,seenCount:1,natureAttr:67108862};console.log("Added ${id}");`)}
-function useShiny(){const id=+document.getElementById('shinyId').value;if(!id)return;copy(`this.scene.gameData.dexData[${id}].caughtAttr=255n;this.scene.gameData.dexData[${id}].seenAttr=479n;console.log("Shiny ${id}");`)}
-
-// 도통초 신청
-function applyDotong(){
-  const nick=localStorage.getItem(SESSION);
-  const name=document.getElementById('dtName').value.trim();
-  const cls=document.getElementById('dtClass').value.trim();
-  const num=document.getElementById('dtNum').value.trim();
-  if(!name||!cls||!num)return setS('dtStatus','다 채워라',false);
-  const banned=getBanned();
-  if(banned[nick]&&banned[nick]>Date.now())return setS('dtStatus','차단된 계정',false);
-  const pending=getPending();
-  if(pending.find(p=>p.nick===nick))return setS('dtStatus','이미 신청함. 대기 중',false);
-  const u=getUsers()[nick];
-  pending.push({nick,name,cls,num,pass:u.pass,time:Date.now()});
-  savePending(pending);
-  setS('dtStatus','신청 완료. 개발자 승인 기다리는 중...',true);
-}
-
-// 도통초 기능
-function dtUse(fn){
-  const nick=localStorage.getItem(SESSION);
-  const d=getDtUses(nick);
-  if(d.left<=0)return setS('mainStatus','오늘 횟수 다 씀. 추가 요청해',false);
-  d.left--;saveDtUses(nick,d);updateDtLeft(nick);fn();
-}
-function dtUnlockAll(){dtUse(()=>copy(`for(let i=1;i<=1025;i++){this.scene.gameData.starterData[i]={abilityAttr:7,candyCount:200,eggMoves:15,friendship:255,passiveAttr:3,valueReduction:2};this.scene.gameData.dexData[i]={caughtAttr:255n,ivs:[31,31,31,31,31,31],seenAttr:479n,caughtCount:50,hatchedCount:50,seenCount:50,natureAttr:67108862};}console.log("DT Unlock All");`))}
-function dtVoucher(){dtUse(()=>copy(`this.scene.gameData.voucherCounts=[999,999,999,999];console.log("DT Voucher");`))}
-function dtMoney(){dtUse(()=>copy(`this.scene.money=99999999;console.log("DT Money");`))}
-function dtBalls(){dtUse(()=>copy(`this.scene.pokeballCounts={0:999,1:999,2:999,3:999,4:999};console.log("DT Balls");`))}
-function dtRequestMore(){setS('mainStatus','추가 요청 보냄. 개발자가 확인하면 풀어줌',true);const reqs=JSON.parse(localStorage.getItem('pr_dt_req')||'[]');reqs.push({nick:localStorage.getItem(SESSION),time:Date.now()});localStorage.setItem('pr_dt_req',JSON.stringify(reqs))}
-
-// DEV
-function toggleDevPrompt(){document.getElementById('devPrompt').classList.toggle('hidden')}
-function enterDev(){
-  if(document.getElementById('devPass').value!=='qwertity8787')return setS('mainStatus','비번 틀림',false);
-  const nick=localStorage.getItem(SESSION);
-  const u=getUsers();u[nick].role='dev';saveUsers(u);
-  document.getElementById('devZone').classList.remove('hidden');
-  document.getElementById('devBadge').style.display='inline-block';
-  document.getElementById('devPrompt').classList.add('hidden');
-  renderPending();
-  setS('mainStatus','개발자 모드 진입',true);
-}
-function renderPending(){
-  const pending=getPending();
-  const banned=getBanned();
-  let html='';
-  if(!pending.length)html='<div style="color:#666;font-size:.85rem">대기 중인 신청 없음</div>';
-  pending.forEach((p,i)=>{
-    html+=`<div class="pending-card">
-      <b>${p.name}</b> (${p.cls}반 ${p.num}번) — 아이디: ${p.nick}<br>
-      비번(디코드): ${atob(p.pass)}
-      <div class="row" style="margin-top:6px">
-        <button class="btn-green" onclick="approve(${i})">승인</button>
-        <button class="btn-orange" onclick="reject(${i})">거절</button>
-        <button class="btn-red" onclick="banUser('${p.nick}', ${i})">차단</button>
-      </div>
-    </div>`;
-  });
-  document.getElementById('pendingList').innerHTML=html;
-
-  let bhtml='<div style="font-size:.85rem;color:#888;margin-bottom:4px">차단 목록</div>';
-  Object.keys(banned).forEach(n=>{
-    if(banned[n]>Date.now())bhtml+=`<div class="pending-card">${n} — <button class="btn-green" style="width:auto;padding:4px 10px" onclick="unban('${n}')">풀기</button></div>`;
-  });
-  document.getElementById('bannedList').innerHTML=bhtml;
-}
-function approve(i){
-  const pending=getPending();
-  const p=pending[i];
-  const u=getUsers();u[p.nick].role='dotong';saveUsers(u);
-  pending.splice(i,1);savePending(pending);
-  renderPending();
-  setS('mainStatus',`${p.name} 승인 완료`,true);
-}
-function reject(i){const pending=getPending();pending.splice(i,1);savePending(pending);renderPending();setS('mainStatus','거절함',false)}
-function banUser(nick,i){
-  const banned=getBanned();
-  banned[nick]=Date.now()+7*24*60*60*1000; // 7일
-  saveBanned(banned);
-  const pending=getPending();pending.splice(i,1);savePending(pending);
-  renderPending();
-  setS('mainStatus',`${nick} 7일 차단`,false);
-}
-function unban(nick){const banned=getBanned();delete banned[nick];saveBanned(banned);renderPending();setS('mainStatus',`${nick} 차단 해제`,true)}
-
-function devUnlockAll(){copy(`for(let i=1;i<=1025;i++){this.scene.gameData.starterData[i]={abilityAttr:7,candyCount:200,eggMoves:15,friendship:255,passiveAttr:3,valueReduction:2};this.scene.gameData.dexData[i]={caughtAttr:255n,ivs:[31,31,31,31,31,31],seenAttr:479n,caughtCount:50,hatchedCount:50,seenCount:50,natureAttr:67108862};}console.log("DEV ALL");`)}
-function devVoucher(){copy(`this.scene.gameData.voucherCounts=[9999,9999,9999,9999];console.log("DEV Voucher");`)}
-function devMoney(){copy(`this.scene.money=99999999;console.log("DEV Money");`)}
-function devBalls(){copy(`this.scene.pokeballCounts={0:999,1:999,2:999,3:999,4:999};console.log("DEV Balls");`)}
-function devEggs(){copy(`for(let i=0;i<100;i++){this.scene.gameData.eggs.push({id:Date.now()+i,tier:4,species:0,hatchWaves:1,timestamp:Date.now()});}console.log("DEV Eggs");`)}
-function devLevel(){copy(`this.scene.party.forEach(p=>{p.level=999;});console.log("DEV Level");`)}
-function devShinyAll(){copy(`for(let i=1;i<=1025;i++){if(this.scene.gameData.dexData[i]){this.scene.gameData.dexData[i].caughtAttr=255n;this.scene.gameData.dexData[i].seenAttr=479n;}}console.log("DEV Shiny");`)}
-function devWipe(){if(confirm('진짜?'))copy(`localStorage.clear();location.reload();`)}
-
-(function(){const s=localStorage.getItem(SESSION);if(s)showMain(s)})();
-</script>
-</body>
-</html>
+  document

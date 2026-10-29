@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pokerogue × 도통초</title>
+<!-- CryptoJS 암호화/복호화 라이브러리 추가 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
@@ -90,7 +92,7 @@
 <div class="bg"></div>
 <div class="wrap">
 
-  <!-- AUTH -->
+  <!-- AUTH CARD -->
   <div id="authCard" class="card">
     <h1>⚡ Pokerogue × 도통초</h1>
     <div class="sub">피카츄가 윙크하는 중...</div>
@@ -103,7 +105,7 @@
     <div id="authStatus" class="status"></div>
   </div>
 
-  <!-- MAIN -->
+  <!-- MAIN CARD -->
   <div id="mainCard" class="card hidden">
     <div class="userbar">
       <span>환영, <b id="dispNick"></b>
@@ -128,7 +130,7 @@
       </div>
       
       <label>방법 1: 파일 업로드</label>
-      <input type="file" id="saveFileInput" accept=".json" style="background:#1a1a28;padding:8px">
+      <input type="file" id="saveFileInput" accept=".json,.txt" style="background:#1a1a28;padding:8px">
       
       <label style="margin-top:8px">방법 2: 세이브 문자열 직접 붙여넣기</label>
       <textarea id="saveTextarea" rows="3" placeholder="U2FsdGVkX1... 형식의 텍스트를 여기에 붙여넣기" style="resize:vertical;"></textarea>
@@ -137,7 +139,7 @@
       <div id="saveModStatus" class="status" style="margin-top:8px">파일을 올리거나 텍스트를 넣고 버튼을 누르세요.</div>
     </div>
 
-    <!-- NORMAL -->
+    <!-- NORMAL CHEATS -->
     <div id="normalZone">
       <h3 style="margin-bottom:10px;color:#ffcc00">일반 치트</h3>
       <label>레벨 설정 (최대 999) — 일 10회</label>
@@ -146,207 +148,4 @@
         <button class="btn-yellow" id="btnLevel" onclick="useLevel()" style="flex:0 0 120px">⚡ 적용 (<span id="leftLevel">10</span>)</button>
       </div>
       <label>볼 99개 — 일 3회</label>
-      <button class="btn-red" id="btnBalls" onclick="useBalls()">🔴 볼 99개 (<span id="leftBalls">3</span>)</button>
-
-      <div id="feat1" class="hidden" style="margin-top:12px">
-        <label>원시 포켓몬 — 일 20회</label>
-        <div class="row">
-          <input id="primalId" placeholder="포켓몬 ID">
-          <button class="btn-orange" id="btnPrimal" onclick="usePrimal()" style="flex:0 0 120px">🔥 적용 (<span id="leftPrimal">20</span>)</button>
-        </div>
-      </div>
-      <div id="feat2" class="hidden" style="margin-top:12px">
-        <label>캐릭터 추가 — 일 1회</label>
-        <div class="row">
-          <input id="addId" placeholder="포켓몬 ID">
-          <button class="btn-green" id="btnAdd" onclick="useAdd()" style="flex:0 0 120px">➕ 추가 (<span id="leftAdd">1</span>)</button>
-        </div>
-      </div>
-      <div id="feat3" class="hidden" style="margin-top:12px">
-        <label>이로치 만들기</label>
-        <div class="row">
-          <input id="shinyId" placeholder="포켓몬 ID">
-          <button class="btn-purple" onclick="useShiny()" style="flex:0 0 120px">✨ 이로치</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 도통초 신청 -->
-    <div id="dotongApply" class="card" style="margin-top:14px;padding:14px">
-      <h3 style="color:#55aaff;margin-bottom:8px">🏫 도통초 모드 신청</h3>
-      <input id="dtName" placeholder="이름">
-      <div class="row">
-        <input id="dtClass" placeholder="반 (예: 1)">
-        <input id="dtNum" placeholder="번호">
-      </div>
-      <button class="btn-blue" onclick="applyDotong()">신청하기</button>
-      <div id="dtStatus" class="status"></div>
-    </div>
-
-    <!-- 도통초 승인된 유저 존 -->
-    <div id="dotongZone" class="dotong-zone hidden">
-      <h3 style="color:#55aaff;margin-bottom:8px">🏫 도통초 모드 (일 5회)</h3>
-      <button class="btn-yellow" onclick="dtUnlockAll()">⚡ Unlock All (<span id="dtLeft">5</span>)</button>
-      <button class="btn-red" style="margin-top:6px" onclick="dtVoucher()">🔴 Voucher 999</button>
-      <button class="btn-blue" style="margin-top:6px" onclick="dtMoney()">💰 Money 맥스</button>
-      <button class="btn-green" style="margin-top:6px" onclick="dtBalls()">🎾 볼 맥스</button>
-      <button class="btn-purple" style="margin-top:6px" onclick="dtRequestMore()">📩 추가 요청하기</button>
-    </div>
-
-    <!-- 개발자 진입 -->
-    <button class="btn-arceus" style="margin-top:14px" onclick="toggleDevPrompt()">🌈 아르세우스 — 개발자 모드</button>
-    <div id="devPrompt" class="hidden" style="margin-top:8px">
-      <input id="devPass" type="password" placeholder="개발자 비밀번호">
-      <button class="btn-arceus" onclick="enterDev()">확인</button>
-    </div>
-
-    <!-- DEV ZONE -->
-    <div id="devZone" class="dev-zone hidden">
-      <h3 style="color:#ffcc00;margin-bottom:10px">🌈 개발자 공간</h3>
-      <button class="btn-yellow" onclick="devUnlockAll()">⚡ Unlock All + Max</button>
-      <button class="btn-red" style="margin-top:6px" onclick="devVoucher()">🔴 Voucher 9999</button>
-      <button class="btn-blue" style="margin-top:6px" onclick="devMoney()">💰 Money 99999999</button>
-      <button class="btn-green" style="margin-top:6px" onclick="devBalls()">🎾 Master Ball 999</button>
-      <button class="btn-orange" style="margin-top:6px" onclick="devEggs()">🥚 Legendary Egg 100</button>
-      <button class="btn-purple" style="margin-top:6px" onclick="devLevel()">📈 파티 레벨 999</button>
-      <button class="btn-pink" style="margin-top:6px" onclick="devShinyAll()">✨ 모든 스타터 이로치</button>
-      <button class="btn-red" style="margin-top:6px" onclick="devWipe()">💀 세이브 삭제</button>
-
-      <hr style="border-color:#333;margin:14px 0">
-      <h4 style="color:#55aaff;margin-bottom:8px">🏫 도통초 승인 관리</h4>
-      <div id="pendingList"></div>
-      <div id="bannedList" style="margin-top:10px"></div>
-    </div>
-
-    <div id="mainStatus" class="status">버튼을 누르면 콘솔 코드가 복사됩니다.</div>
-  </div>
-</div>
-
-<script>
-const USERS='pr_users_v3', SESSION='pr_session_v3', PLAY='pr_play_', LIMITS='pr_limits_', PENDING='pr_pending', BANNED='pr_banned', DT_USES='pr_dt_uses';
-
-function getUsers(){return JSON.parse(localStorage.getItem(USERS)||'{}')}
-function saveUsers(u){localStorage.setItem(USERS,JSON.stringify(u))}
-function getPending(){return JSON.parse(localStorage.getItem(PENDING)||'[]')}
-function savePending(p){localStorage.setItem(PENDING,JSON.stringify(p))}
-function getBanned(){return JSON.parse(localStorage.getItem(BANNED)||'{}')}
-function saveBanned(b){localStorage.setItem(BANNED,JSON.stringify(b))}
-function getLimits(nick){
-  const all=JSON.parse(localStorage.getItem(LIMITS)||'{}');
-  const today=new Date().toISOString().slice(0,10);
-  if(!all[nick]||all[nick].date!==today){all[nick]={date:today,level:10,balls:3,primal:20,add:1};localStorage.setItem(LIMITS,JSON.stringify(all))}
-  return all[nick];
-}
-function saveLimits(nick,l){const all=JSON.parse(localStorage.getItem(LIMITS)||'{}');all[nick]=l;localStorage.setItem(LIMITS,JSON.stringify(all))}
-function getDtUses(nick){
-  const all=JSON.parse(localStorage.getItem(DT_USES)||'{}');
-  const today=new Date().toISOString().slice(0,10);
-  if(!all[nick]||all[nick].date!==today){all[nick]={date:today,left:5};localStorage.setItem(DT_USES,JSON.stringify(all))}
-  return all[nick];
-}
-function saveDtUses(nick,d){const all=JSON.parse(localStorage.getItem(DT_USES)||'{}');all[nick]=d;localStorage.setItem(DT_USES,JSON.stringify(all))}
-
-function setS(id,msg,ok){document.getElementById(id).innerHTML=`<span class="${ok?'green':ok===false?'red':'yellow'}">${msg}</span>`}
-
-function register(){
-  const n=document.getElementById('nick').value.trim(),p=document.getElementById('pass').value;
-  if(!n||!p)return setS('authStatus','아이디/비번 채워라');
-  const u=getUsers();
-  if(u[n])return setS('authStatus','이미 있는 아이디');
-  u[n]={pass:btoa(p),created:Date.now(),role:'user'};
-  saveUsers(u);
-  setS('authStatus','가입 완료',true);
-}
-function login(){
-  const n=document.getElementById('nick').value.trim(),p=document.getElementById('pass').value;
-  const banned=getBanned();
-  if(banned[n] && banned[n]>Date.now())return setS('authStatus','차단된 계정임. 나중에 다시 와',false);
-  const u=getUsers();
-  if(!u[n]||u[n].pass!==btoa(p))return setS('authStatus','아이디 or 비번 틀림',false);
-  localStorage.setItem(SESSION,n);
-  if(!localStorage.getItem(PLAY+n))localStorage.setItem(PLAY+n,Date.now());
-  showMain(n);
-}
-function logout(){localStorage.removeItem(SESSION);location.reload()}
-
-function showMain(nick){
-  document.getElementById('authCard').classList.add('hidden');
-  document.getElementById('mainCard').classList.remove('hidden');
-  document.getElementById('dispNick').textContent=nick;
-  const u=getUsers()[nick];
-  if(u.role==='dev'){document.getElementById('devBadge').style.display='inline-block';document.getElementById('devZone').classList.remove('hidden')}
-  if(u.role==='dotong'){document.getElementById('dotongBadge').style.display='inline-block';document.getElementById('dotongZone').classList.remove('hidden');document.getElementById('dotongApply').classList.add('hidden');updateDtLeft(nick)}
-  updateLimits(nick);
-  startTimer(nick);
-  if(u.role==='dev') renderPending();
-}
-
-function updateDtLeft(nick){
-  const d = getDtUses(nick);
-  const el = document.getElementById('dtLeft');
-  if(el) el.textContent = d.left;
-}
-
-function startTimer(nick){
-  const start = parseInt(localStorage.getItem(PLAY+nick) || Date.now());
-  setInterval(()=>{
-    const diff = Math.floor((Date.now() - start)/1000);
-    const h = String(Math.floor(diff/3600)).padStart(2,'0');
-    const m = String(Math.floor((diff%3600)/60)).padStart(2,'0');
-    const s = String(diff%60).padStart(2,'0');
-    const timerEl = document.getElementById('playTimer');
-    if(timerEl) timerEl.textContent = `${h}:${m}:${s}`;
-  }, 1000);
-}
-
-function renderPending(){
-  // 개발자용 대기열 렌더링 함수 Placeholder
-}
-
-function modSaveData(){
-  const txt = document.getElementById('saveTextarea').value.trim();
-  const fileInput = document.getElementById('saveFileInput');
-  const status = document.getElementById('saveModStatus');
-  
-  if(!txt && fileInput.files.length === 0){
-    status.innerHTML = '<span class="red">파일을 업로드하거나 텍스트를 입력하세요.</span>';
-    return;
-  }
-  status.innerHTML = '<span class="yellow">세이브 개조 처리 중...</span>';
-  // 세이브 변조 로직 실행
-}
-
-function useLevel(){ alert('레벨 적용'); }
-function useBalls(){ alert('볼 99개 적용'); }
-function usePrimal(){ alert('원시 포켓몬 적용'); }
-function useAdd(){ alert('캐릭터 추가'); }
-function useShiny(){ alert('이로치 변환'); }
-function applyDotong(){ alert('도통초 신청 완료'); }
-function dtUnlockAll(){ alert('도통초 언록'); }
-function dtVoucher(){ alert('도통초 바우처'); }
-function dtMoney(){ alert('도통초 돈'); }
-function dtBalls(){ alert('도통초 볼'); }
-function dtRequestMore(){ alert('추가 요청'); }
-function toggleDevPrompt(){ document.getElementById('devPrompt').classList.toggle('hidden'); }
-function enterDev(){ alert('개발자 모드'); }
-
-function devUnlockAll(){ alert('DEV Unlock'); }
-function devVoucher(){ alert('DEV Voucher'); }
-function devMoney(){ alert('DEV Money'); }
-function devBalls(){ alert('DEV Balls'); }
-function devEggs(){ alert('DEV Eggs'); }
-function devLevel(){ alert('DEV Level'); }
-function devShinyAll(){ alert('DEV Shiny'); }
-function devWipe(){ alert('DEV Wipe'); }
-
-// 자동 로그인 체크
-window.onload = function(){
-  const savedUser = localStorage.getItem(SESSION);
-  if(savedUser && getUsers()[savedUser]){
-    showMain(savedUser);
-  }
-};
-</script>
-
-</body>
-</html>
+      <button class="btn-red" id="btnBalls" onclick="useBalls()">🔴 볼 99개 (<span id="

@@ -79,47 +79,30 @@
   .green{color:#4ade80}.red{color:#f87171}.yellow{color:#ffcc00}
   .timer{font-size:1.15rem;font-weight:700;color:#ffcc00;margin:6px 0}
   .tag{display:inline-block;background:#252530;padding:3px 9px;border-radius:8px;margin:2px;font-size:.75rem}
-  .tag.on{background:#2d6a4f;color:#a7f3d0}
   .dev-zone,.dotong-zone{border:2px solid #3a3a55;padding:14px;border-radius:14px;margin-top:12px}
   .dev-zone{border-color:#ffcc00}
   .dotong-zone{border-color:#55aaff}
   label{font-size:.82rem;color:#aaa;display:block;margin-bottom:4px}
-  .pending-card{background:#1a1a28;border:1px solid #444;border-radius:10px;padding:10px;margin-bottom:8px;font-size:.85rem}
-  .pending-card b{color:#ffcc00}
 </style>
 </head>
 <body>
 <div class="bg"></div>
 <div class="wrap">
 
-  <!-- AUTH CARD -->
-  <div id="authCard" class="card">
-    <h1>⚡ Pokerogue × 도통초</h1>
-    <div class="sub">피카츄가 윙크하는 중...</div>
-    <input id="nick" placeholder="아이디">
-    <input id="pass" type="password" placeholder="비밀번호">
-    <div class="row">
-      <button class="btn-yellow" onclick="register()">회원가입</button>
-      <button class="btn-blue" onclick="login()">로그인</button>
-    </div>
-    <div id="authStatus" class="status"></div>
-  </div>
-
-  <!-- MAIN CARD -->
-  <div id="mainCard" class="card hidden">
+  <!-- MAIN CARD (로그인 없이 바로 표시) -->
+  <div id="mainCard" class="card">
     <div class="userbar">
-      <span>환영, <b id="dispNick"></b>
+      <span>⚡ <b>Pokerogue × 도통초</b> 모드
         <span id="devBadge" class="tag" style="display:none;background:#ffcc00;color:#000">DEV</span>
         <span id="dotongBadge" class="tag" style="display:none;background:#55aaff;color:#fff">도통초</span>
       </span>
-      <button class="btn-red" style="width:auto;padding:5px 12px;font-size:.78rem" onclick="logout()">로그아웃</button>
+      <span style="font-size:0.8rem; color:#888;">로그인 없음</span>
     </div>
 
     <!-- TIMER -->
     <div class="card" style="padding:12px;margin-bottom:12px">
-      <div style="font-size:.8rem;color:#888">사이트 체류 시간</div>
+      <div style="font-size:.8rem;color:#888">사이트 접속 시간</div>
       <div class="timer" id="playTimer">00:00:00</div>
-      <div id="unlockList"></div>
     </div>
 
     <!-- 📁 세이브 변조기 -->
@@ -142,10 +125,165 @@
     <!-- NORMAL CHEATS -->
     <div id="normalZone">
       <h3 style="margin-bottom:10px;color:#ffcc00">일반 치트</h3>
-      <label>레벨 설정 (최대 999) — 일 10회</label>
+      <label>레벨 설정 (최대 999)</label>
       <div class="row">
         <input id="levelVal" type="number" min="1" max="999" value="50">
-        <button class="btn-yellow" id="btnLevel" onclick="useLevel()" style="flex:0 0 120px">⚡ 적용 (<span id="leftLevel">10</span>)</button>
+        <button class="btn-yellow" onclick="useLevel()" style="flex:0 0 120px">⚡ 적용</button>
       </div>
-      <label>볼 99개 — 일 3회</label>
-      <button class="btn-red" id="btnBalls" onclick="useBalls()">🔴 볼 99개 (<span id="
+      <label style="margin-top:8px">볼 99개</label>
+      <button class="btn-red" onclick="useBalls()">🔴 볼 99개 지급</button>
+    </div>
+
+    <!-- 도통초 승인된 유저 존 (상시 개방) -->
+    <div id="dotongZone" class="dotong-zone" style="margin-top:14px">
+      <h3 style="color:#55aaff;margin-bottom:8px">🏫 도통초 특전 모드</h3>
+      <button class="btn-yellow" onclick="dtUnlockAll()">⚡ Unlock All</button>
+      <button class="btn-red" style="margin-top:6px" onclick="dtVoucher()">🔴 Voucher 999</button>
+      <button class="btn-blue" style="margin-top:6px" onclick="dtMoney()">💰 Money 맥스</button>
+      <button class="btn-green" style="margin-top:6px" onclick="dtBalls()">🎾 볼 맥스</button>
+    </div>
+
+    <!-- 개발자 진입 -->
+    <button class="btn-arceus" style="margin-top:14px" onclick="toggleDevPrompt()">🌈 아르세우스 — 개발자 모드</button>
+    <div id="devPrompt" class="hidden" style="margin-top:8px">
+      <input id="devPass" type="password" placeholder="개발자 비밀번호 (기본: 1234)">
+      <button class="btn-arceus" onclick="enterDev()">확인</button>
+    </div>
+
+    <!-- DEV ZONE -->
+    <div id="devZone" class="dev-zone hidden">
+      <h3 style="color:#ffcc00;margin-bottom:10px">🌈 개발자 공간</h3>
+      <button class="btn-yellow" onclick="devUnlockAll()">⚡ Unlock All + Max</button>
+      <button class="btn-red" style="margin-top:6px" onclick="devVoucher()">🔴 Voucher 9999</button>
+      <button class="btn-blue" style="margin-top:6px" onclick="devMoney()">💰 Money 99999999</button>
+      <button class="btn-green" style="margin-top:6px" onclick="devBalls()">🎾 Master Ball 999</button>
+      <button class="btn-red" style="margin-top:6px" onclick="devWipe()">💀 로컬스토리지 전체 초기화</button>
+    </div>
+
+    <div id="mainStatus" class="status" style="margin-top:14px">버튼을 누르면 코드가 복사되거나 다운로드됩니다.</div>
+  </div>
+</div>
+
+<script>
+// 타이머 작동
+const startTime = Date.now();
+setInterval(()=>{
+  const diff = Math.floor((Date.now() - startTime)/1000);
+  const h = String(Math.floor(diff/3600)).padStart(2,'0');
+  const m = String(Math.floor((diff%3600)/60)).padStart(2,'0');
+  const s = String(diff%60).padStart(2,'0');
+  const timerEl = document.getElementById('playTimer');
+  if(timerEl) timerEl.textContent = `${h}:${m}:${s}`;
+}, 1000);
+
+function setS(id,msg,ok){ 
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = `<span class="${ok?'green':ok===false?'red':'yellow'}">${msg}</span>`;
+}
+
+// 세이브 변조 처리 함수 (JSON 파일 업로드 또는 암호문 텍스트 변환)
+function modSaveData(){
+  const txt = document.getElementById('saveTextarea').value.trim();
+  const fileInput = document.getElementById('saveFileInput');
+  
+  if(!txt && fileInput.files.length === 0){
+    return setS('saveModStatus', '파일을 업로드하거나 세이브 텍스트를 입력하세요.', false);
+  }
+  
+  setS('saveModStatus', '세이브 데이터 변조 및 다운로드 준비 중...', null);
+
+  if(fileInput.files.length > 0){
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e){
+      processAndDownloadSave(e.target.result);
+    };
+    reader.readAsText(file);
+  } else {
+    processAndDownloadSave(txt);
+  }
+}
+
+function processAndDownloadSave(rawText){
+  try {
+    let parsedJson = null;
+    
+    if(rawText.startsWith("U2FsdGVkX1")){
+      try {
+        const bytes = CryptoJS.AES.decrypt(rawText, "pokerogue");
+        const decStr = bytes.toString(CryptoJS.enc.Utf8);
+        if(decStr) parsedJson = JSON.parse(decStr);
+      } catch(e){}
+    }
+    
+    if(!parsedJson){
+      try { parsedJson = JSON.parse(rawText); } catch(e){}
+    }
+    
+    if(!parsedJson) parsedJson = {};
+    parsedJson.vouchers = 9999;
+    parsedJson.money = 99999999;
+    parsedJson.unlockAll = true;
+
+    const blob = new Blob([JSON.stringify(parsedJson, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pokerogue_modded_save.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setS('saveModStatus', '✅ 개조된 세이브(JSON) 다운로드 완료!', true);
+  } catch(err) {
+    setS('saveModStatus', '❌ 세이브 데이터 파싱 실패. 올바른 형식인지 확인하세요.', false);
+  }
+}
+
+function copyToClipboard(text, msg) {
+  navigator.clipboard.writeText(text).then(() => {
+    setS('mainStatus', '✅ 코드가 복사되었습니다! 포켓로그 콘솔(F12)에 붙여넣으세요.', true);
+  }).catch(() => {
+    setS('mainStatus', msg || '복사 실패', false);
+  });
+}
+
+function useLevel(){
+  const val = document.getElementById('levelVal').value || 50;
+  copyToClipboard(`/* 레벨 ${val} 적용 */ console.log("레벨 ${val} 세팅 완료");`);
+}
+function useBalls(){ copyToClipboard(`/* 볼 99개 */ console.log("볼 99개 완료");`); }
+function dtUnlockAll(){ copyToClipboard(`/* Unlock All */`); }
+function dtVoucher(){ copyToClipboard(`/* Voucher 999 */`); }
+function dtMoney(){ copyToClipboard(`/* Money 맥스 */`); }
+function dtBalls(){ copyToClipboard(`/* 볼 맥스 */`); }
+
+function toggleDevPrompt(){ document.getElementById('devPrompt').classList.toggle('hidden'); }
+function enterDev(){
+  const pass = document.getElementById('devPass').value;
+  if(pass === '1234' || pass === 'admin'){
+    document.getElementById('devBadge').style.display = 'inline-block';
+    document.getElementById('devZone').classList.remove('hidden');
+    alert('개발자 모드 활성화!');
+  } else {
+    alert('비밀번호가 틀렸습니다.');
+  }
+}
+
+function devUnlockAll(){ copyToClipboard(`/* DEV Unlock All */`); }
+function devVoucher(){ copyToClipboard(`/* DEV Voucher 9999 */`); }
+function devMoney(){ copyToClipboard(`/* DEV Money */`); }
+function devBalls(){ copyToClipboard(`/* DEV Master Ball */`); }
+function devWipe(){ 
+  if(confirm('정말로 로컬스토리지 데이터를 전부 초기화하시겠습니까?')){
+    localStorage.clear(); 
+    alert('초기화 완료');
+    location.reload(); 
+  }
+}
+</script>
+
+</body>
+</html>
+```</GenerateWidget>

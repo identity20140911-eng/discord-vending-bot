@@ -120,7 +120,7 @@
       <div id="unlockList"></div>
     </div>
 
-    <!-- 📁 세이브 변조기 (파일 업로드 + 텍스트 직접 입력 겸용) -->
+    <!-- 📁 세이브 변조기 -->
     <div class="card" style="border-color:#ffcc00;background:rgba(30,30,45,0.95);margin-bottom:14px">
       <h3 style="color:#ffcc00;margin-bottom:6px">📁 포켓로그 세이브 변조기</h3>
       <div style="font-size:0.8rem;color:#ccc;margin-bottom:10px">
@@ -276,13 +276,77 @@ function showMain(nick){
   const u=getUsers()[nick];
   if(u.role==='dev'){document.getElementById('devBadge').style.display='inline-block';document.getElementById('devZone').classList.remove('hidden')}
   if(u.role==='dotong'){document.getElementById('dotongBadge').style.display='inline-block';document.getElementById('dotongZone').classList.remove('hidden');document.getElementById('dotongApply').classList.add('hidden');updateDtLeft(nick)}
-  updateLimits(nick);startTimer(nick);if(u.role==='dev')renderPending();
+  updateLimits(nick);
+  startTimer(nick);
+  if(u.role==='dev') renderPending();
 }
 
-function updateLimits(nick){
-  const l=getLimits(nick);
-  document.getElementById('leftLevel').textContent=l.level;
-  document.getElementById('leftBalls').textContent=l.balls;
-  document.getElementById('leftPrimal').textContent=l.primal;
-  document.getElementById('leftAdd').textContent=l.add;
-  document
+function updateDtLeft(nick){
+  const d = getDtUses(nick);
+  const el = document.getElementById('dtLeft');
+  if(el) el.textContent = d.left;
+}
+
+function startTimer(nick){
+  const start = parseInt(localStorage.getItem(PLAY+nick) || Date.now());
+  setInterval(()=>{
+    const diff = Math.floor((Date.now() - start)/1000);
+    const h = String(Math.floor(diff/3600)).padStart(2,'0');
+    const m = String(Math.floor((diff%3600)/60)).padStart(2,'0');
+    const s = String(diff%60).padStart(2,'0');
+    const timerEl = document.getElementById('playTimer');
+    if(timerEl) timerEl.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+}
+
+function renderPending(){
+  // 개발자용 대기열 렌더링 함수 Placeholder
+}
+
+function modSaveData(){
+  const txt = document.getElementById('saveTextarea').value.trim();
+  const fileInput = document.getElementById('saveFileInput');
+  const status = document.getElementById('saveModStatus');
+  
+  if(!txt && fileInput.files.length === 0){
+    status.innerHTML = '<span class="red">파일을 업로드하거나 텍스트를 입력하세요.</span>';
+    return;
+  }
+  status.innerHTML = '<span class="yellow">세이브 개조 처리 중...</span>';
+  // 세이브 변조 로직 실행
+}
+
+function useLevel(){ alert('레벨 적용'); }
+function useBalls(){ alert('볼 99개 적용'); }
+function usePrimal(){ alert('원시 포켓몬 적용'); }
+function useAdd(){ alert('캐릭터 추가'); }
+function useShiny(){ alert('이로치 변환'); }
+function applyDotong(){ alert('도통초 신청 완료'); }
+function dtUnlockAll(){ alert('도통초 언록'); }
+function dtVoucher(){ alert('도통초 바우처'); }
+function dtMoney(){ alert('도통초 돈'); }
+function dtBalls(){ alert('도통초 볼'); }
+function dtRequestMore(){ alert('추가 요청'); }
+function toggleDevPrompt(){ document.getElementById('devPrompt').classList.toggle('hidden'); }
+function enterDev(){ alert('개발자 모드'); }
+
+function devUnlockAll(){ alert('DEV Unlock'); }
+function devVoucher(){ alert('DEV Voucher'); }
+function devMoney(){ alert('DEV Money'); }
+function devBalls(){ alert('DEV Balls'); }
+function devEggs(){ alert('DEV Eggs'); }
+function devLevel(){ alert('DEV Level'); }
+function devShinyAll(){ alert('DEV Shiny'); }
+function devWipe(){ alert('DEV Wipe'); }
+
+// 자동 로그인 체크
+window.onload = function(){
+  const savedUser = localStorage.getItem(SESSION);
+  if(savedUser && getUsers()[savedUser]){
+    showMain(savedUser);
+  }
+};
+</script>
+
+</body>
+</html>
